@@ -1,0 +1,49 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: laravel_app
+    ports:
+      - "8000:8000" # Map Laravel's internal port 8000 to host 8000
+    volumes:
+      - ./app:/var/www/html
+    networks:
+      - laravel_network
+    depends_on:
+      - mysql
+
+  mysql:
+    image: mysql:8.0
+    container_name: mysql_db
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: laravel
+      MYSQL_USER: laravel
+      MYSQL_PASSWORD: secret
+    ports:
+      - "3306:3306"
+    volumes:
+      - db_data:/var/lib/mysql
+    networks:
+      - laravel_network
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin:latest
+    container_name: phpmyadmin
+    environment:
+      PMA_HOST: mysql
+      PMA_USER: laravel
+      PMA_PASSWORD: secret
+    ports:
+      - "8080:80" # Map phpMyAdmin's internal port 80 to host 8080
+    networks:
+      - laravel_network
+
+volumes:
+  db_data:
+
+networks:
+  laravel_network:
