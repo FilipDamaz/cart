@@ -102,6 +102,39 @@ class CartControllerTest extends TestCase
         ]);
     }
 
+    public function test_add_fourth_unique_product_to_cart_fails()
+    {
+        $currency = Currency::first();
+        $cart = Cart::create([
+            'currency_id' => $currency->id,
+            'total_price' => 0,  // Provide a value
+            'final_total_price' => 0, // Provide a value
+        ]);
+
+        $response = $this->postJson('/api/cart/add/'. $cart->id, [
+            'product_id' => 1,
+            'quantity' => 5
+        ]);
+
+        $response = $this->postJson('/api/cart/add/'. $cart->id, [
+            'product_id' => 2,
+            'quantity' => 5
+        ]);
+
+        $response = $this->postJson('/api/cart/add/'. $cart->id, [
+            'product_id' => 3,
+            'quantity' => 5
+        ]);
+
+        $response = $this->postJson('/api/cart/add/'. $cart->id, [
+            'product_id' => 4,
+            'quantity' => 5
+        ]);
+        $response->assertStatus(422);
+        $message = json_decode($response->getContent(), true)['message'];
+        $this->assertEquals('Cannot add more than 3 different products to the cart.', $message);
+    }
+
     // Test removing a product from the cart
     public function test_remove_product_from_cart()
     {

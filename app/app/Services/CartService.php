@@ -69,7 +69,12 @@ class CartService
     public function addProduct(int $productId, int $quantity, int $cartId): Cart
     {
         $this->cart = Cart::findOrFail($cartId);
+        $uniqueProductsCount = CartItem::where('cart_id', $this->cart->id)->count();
         $cartItem = CartItem::where('cart_id', $this->cart->id)->where('product_id', $productId)->first();
+
+        if (!$cartItem && $uniqueProductsCount >= 3) {
+            abort(422, 'Cannot add more than 3 different products to the cart.');
+        }
 
         $product = Product::findOrFail($productId);
         $productPriceCartCurrency = $this->getProductPriceForCartCurrency($product);
