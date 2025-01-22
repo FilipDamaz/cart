@@ -73,6 +73,35 @@ class CartControllerTest extends TestCase
         ]);
     }
 
+    public function test_add_product_to_cart_new_quantity_extend_limit()
+    {
+        $currency = Currency::first();
+        $cart = Cart::create([
+            'currency_id' => $currency->id,
+            'total_price' => 0,  // Provide a value
+            'final_total_price' => 0, // Provide a value
+        ]);
+
+        $response = $this->postJson('/api/cart/add/'. $cart->id, [
+            'product_id' => 1,
+            'quantity' => 5
+        ]);
+
+        $response = $this->postJson('/api/cart/add/'. $cart->id, [
+            'product_id' => 1,
+            'quantity' => 6
+        ]);
+
+        $response->assertStatus(422);
+        $message = json_decode($response->getContent(), true)['message'];
+        $this->assertEquals('Cannot add more than 10 items of this product to the cart.', $message);
+        $this->assertDatabaseHas('cart_items', [
+            'cart_id' => $cart->id,
+            'product_id' => 1,
+            'quantity' => 5
+        ]);
+    }
+
     // Test removing a product from the cart
     public function test_remove_product_from_cart()
     {
