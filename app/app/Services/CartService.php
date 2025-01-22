@@ -75,6 +75,10 @@ class CartService
         $productPriceCartCurrency = $this->getProductPriceForCartCurrency($product);
 
         if ($cartItem) {
+            $newQuantity = $cartItem->quantity + $quantity;
+            if ($newQuantity > 10) {
+                abort(422, 'Cannot add more than 10 items of this product to the cart.');
+            }
             $cartItem->increment('quantity', $quantity);
         } else {
             $this->addProductToCart($this->cart->id, $productId, $quantity, $productPriceCartCurrency);
